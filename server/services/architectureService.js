@@ -114,7 +114,7 @@ const resolveImport = (sourcePath, importPath, filePaths) => {
 
 // Generate repository architecture
 const generateArchitecture = async (repositoryId) => {
-    const repository = repositoryService.getRepositoryById(repositoryId);
+   const repository = await repositoryService.getRepositoryById(repositoryId);
 
     const analysis = await codeAnalysisService.analyzeRepository(
         repository.owner,

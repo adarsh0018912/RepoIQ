@@ -1,14 +1,15 @@
 
-const { randomUUID } = require("crypto");
-
-// Temporary documentation storage
-const documentation = [];
+const Documentation = require("../models/Documentation");
 
 // Create documentation
-const createDocumentation = (repositoryId, data) => {
+const createDocumentation = async (repositoryId, data) => {
     const { title, type, content } = data;
 
-    if (!title || !type || !content) {
+    if (
+        typeof title !== "string" || !title.trim() ||
+        typeof type !== "string" ||
+        typeof content !== "string" || !content.trim()
+    ) {
         const error = new Error(
             "Title, type and content are required"
         );
@@ -29,36 +30,39 @@ const createDocumentation = (repositoryId, data) => {
         throw error;
     }
 
-    const newDocument = {
-        id: randomUUID(),
+    return await Documentation.create({
         repositoryId,
-        title,
+        title: title.trim(),
         type,
         content,
-        sourceCommit: data.sourceCommit || null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
-
-    documentation.push(newDocument);
-
-    return newDocument;
+        sourceCommit: data.sourceCommit || null
+    });
 };
 
 // Get all documentation for a repository
-const getDocumentation = (repositoryId) => {
-    return documentation.filter(
-        (doc) => doc.repositoryId === repositoryId
-    );
+const getDocumentation = async (repositoryId) => {
+    return await Documentation.find({ repositoryId })
+        .sort({ createdAt: -1 });
 };
 
 // Get one document
-const getDocumentationById = (repositoryId, docId) => {
-    const document = documentation.find(
-        (doc) =>
-            doc.id === docId &&
-            doc.repositoryId === repositoryId
-    );
+const getDocumentationById = async (repositoryId, docId) => {
+    let document;
+
+    try {
+        document = await Documentation.findOne({
+            _id: docId,
+            repositoryId
+        });
+    } catch (error) {
+        if (error.name === "CastError") {
+            const notFound = new Error("Documentation not found");
+            notFound.statusCode = 404;
+            throw notFound;
+        }
+
+        throw error;
+    }
 
     if (!document) {
         const error = new Error("Documentation not found");
@@ -70,24 +74,35 @@ const getDocumentationById = (repositoryId, docId) => {
 };
 
 // Update documentation
-const updateDocumentation = (repositoryId, docId, data) => {
-    const document = getDocumentationById(repositoryId, docId);
+const updateDocumentation = async (repositoryId, docId, data) => {
+    const document = await getDocumentationById(
+        repositoryId,
+        docId
+    );
 
     if (data.title !== undefined) {
-        if (!data.title.trim()) {
+        if (
+            typeof data.title !== "string" ||
+            !data.title.trim()
+        ) {
             const error = new Error("Title cannot be empty");
             error.statusCode = 400;
             throw error;
         }
-        document.title = data.title;
+
+        document.title = data.title.trim();
     }
 
     if (data.content !== undefined) {
-        if (!data.content.trim()) {
+        if (
+            typeof data.content !== "string" ||
+            !data.content.trim()
+        ) {
             const error = new Error("Content cannot be empty");
             error.statusCode = 400;
             throw error;
         }
+
         document.content = data.content;
     }
 
@@ -108,20 +123,21 @@ const updateDocumentation = (repositoryId, docId, data) => {
         document.type = data.type;
     }
 
-    document.updatedAt = new Date().toISOString();
+    await document.save();
 
     return document;
 };
 
 // Delete documentation
-const deleteDocumentation = (repositoryId, docId) => {
-    const document = getDocumentationById(repositoryId, docId);
-
-    const index = documentation.findIndex(
-        (doc) => doc.id === document.id
+const deleteDocumentation = async (repositoryId, docId) => {
+    const document = await getDocumentationById(
+        repositoryId,
+        docId
     );
 
-    return documentation.splice(index, 1)[0];
+    await document.deleteOne();
+
+    return document;
 };
 
 module.exports = {

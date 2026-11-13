@@ -2,12 +2,13 @@
 const repositoryService = require("../services/repositoryService");
 const githubService = require("../services/githubService");
 const codeAnalysisService = require("../services/codeAnalysisService");
-//  REPOSITORY MANAGEMENT
+
+// REPOSITORY MANAGEMENT
 
 // GET all repositories
-const getRepositories = (req, res) => {
+const getRepositories = async (req, res) => {
     try {
-        const repositories = repositoryService.getRepositories();
+        const repositories = await repositoryService.getRepositories();
 
         res.status(200).json({
             success: true,
@@ -43,9 +44,9 @@ const addRepository = async (req, res) => {
 };
 
 // GET repository by ID
-const getRepositoryById = (req, res) => {
+const getRepositoryById = async (req, res) => {
     try {
-        const repository = repositoryService.getRepositoryById(
+        const repository = await repositoryService.getRepositoryById(
             req.params.id
         );
 
@@ -62,9 +63,9 @@ const getRepositoryById = (req, res) => {
 };
 
 // DELETE repository
-const deleteRepository = (req, res) => {
+const deleteRepository = async (req, res) => {
     try {
-        const repository = repositoryService.deleteRepository(
+        const repository = await repositoryService.deleteRepository(
             req.params.id
         );
 
@@ -81,14 +82,12 @@ const deleteRepository = (req, res) => {
     }
 };
 
-
 // GITHUB INTEGRATION
-
 
 // GET repository branches
 const getRepositoryBranches = async (req, res) => {
     try {
-        const repository = repositoryService.getRepositoryById(
+        const repository = await repositoryService.getRepositoryById(
             req.params.id
         );
 
@@ -113,7 +112,7 @@ const getRepositoryBranches = async (req, res) => {
 // GET recent commits
 const getRepositoryCommits = async (req, res) => {
     try {
-        const repository = repositoryService.getRepositoryById(
+        const repository = await repositoryService.getRepositoryById(
             req.params.id
         );
 
@@ -138,7 +137,7 @@ const getRepositoryCommits = async (req, res) => {
 // GET repository file tree
 const getRepositoryFiles = async (req, res) => {
     try {
-        const repository = repositoryService.getRepositoryById(
+        const repository = await repositoryService.getRepositoryById(
             req.params.id
         );
 
@@ -172,7 +171,7 @@ const getRepositoryFileContent = async (req, res) => {
             });
         }
 
-        const repository = repositoryService.getRepositoryById(
+        const repository = await repositoryService.getRepositoryById(
             req.params.id
         );
 
@@ -194,10 +193,13 @@ const getRepositoryFileContent = async (req, res) => {
         });
     }
 };
-// Analyze repository code
+
+// ANALYZE repository code
 const analyzeRepository = async (req, res) => {
     try {
-        const repository = repositoryService.getRepositoryById(req.params.id);
+        const repository = await repositoryService.getRepositoryById(
+            req.params.id
+        );
 
         const analysis = await codeAnalysisService.analyzeRepository(
             repository.owner,
@@ -209,7 +211,6 @@ const analyzeRepository = async (req, res) => {
             success: true,
             data: analysis
         });
-
     } catch (error) {
         res.status(error.statusCode || 500).json({
             success: false,
@@ -217,18 +218,14 @@ const analyzeRepository = async (req, res) => {
         });
     }
 };
-// ==========================================
+
 // EXPORT ALL CONTROLLERS
-// ==========================================
 
 module.exports = {
-    // Module 1
     getRepositories,
     addRepository,
     getRepositoryById,
     deleteRepository,
-
-    // Module 2
     getRepositoryBranches,
     getRepositoryCommits,
     getRepositoryFiles,

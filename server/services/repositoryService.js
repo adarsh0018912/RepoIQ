@@ -1,8 +1,5 @@
 
-const { randomUUID } = require("crypto");
-
-// Temporary storage until MongoDB integration
-const repositories = [];
+const Repository = require("../models/Repository");
 
 // Validate and extract owner and repository name
 const validateRepositoryUrl = (repoUrl) => {
@@ -84,13 +81,11 @@ const fetchRepositoryDetails = async (repoUrl) => {
 
 // Add repository
 const addRepository = async (repoUrl) => {
-    const { owner, repo } = validateRepositoryUrl(repoUrl);
+    const githubData = await fetchRepositoryDetails(repoUrl);
 
-    const alreadyExists = repositories.some(
-        (item) =>
-            item.owner.toLowerCase() === owner.toLowerCase() &&
-            item.name.toLowerCase() === repo.toLowerCase()
-    );
+    const alreadyExists = await Repository.findOne({
+        fullName: githubData.full_name
+    });
 
     if (alreadyExists) {
         const error = new Error("Repository already exists");
@@ -98,10 +93,7 @@ const addRepository = async (repoUrl) => {
         throw error;
     }
 
-    const githubData = await fetchRepositoryDetails(repoUrl);
-
-    const newRepository = {
-        id: randomUUID(),
+    const newRepository = await Repository.create({
         name: githubData.name,
         owner: githubData.owner.login,
         fullName: githubData.full_name,
@@ -111,25 +103,32 @@ const addRepository = async (repoUrl) => {
         defaultBranch: githubData.default_branch,
         language: githubData.language,
         stars: githubData.stargazers_count,
-        forks: githubData.forks_count,
-        createdAt: new Date().toISOString()
-    };
-
-    repositories.push(newRepository);
+        forks: githubData.forks_count
+    });
 
     return newRepository;
 };
 
 // Get all repositories
-const getRepositories = () => {
-    return repositories;
+const getRepositories = async () => {
+    return await Repository.find().sort({ createdAt: -1 });
 };
 
 // Get one repository
-const getRepositoryById = (id) => {
-    const repository = repositories.find(
-        (item) => item.id === id
-    );
+const getRepositoryById = async (id) => {
+    let repository;
+
+    try {
+        repository = await Repository.findById(id);
+    } catch (error) {
+        if (error.name === "CastError") {
+            const notFound = new Error("Repository not found");
+            notFound.statusCode = 404;
+            throw notFound;
+        }
+
+        throw error;
+    }
 
     if (!repository) {
         const error = new Error("Repository not found");
@@ -141,18 +140,26 @@ const getRepositoryById = (id) => {
 };
 
 // Delete repository
-const deleteRepository = (id) => {
-    const index = repositories.findIndex(
-        (item) => item.id === id
-    );
+const deleteRepository = async (id) => {
+    let deletedRepository;
 
-    if (index === -1) {
+    try {
+        deletedRepository = await Repository.findByIdAndDelete(id);
+    } catch (error) {
+        if (error.name === "CastError") {
+            const notFound = new Error("Repository not found");
+            notFound.statusCode = 404;
+            throw notFound;
+        }
+
+        throw error;
+    }
+
+    if (!deletedRepository) {
         const error = new Error("Repository not found");
         error.statusCode = 404;
         throw error;
     }
-
-    const deletedRepository = repositories.splice(index, 1)[0];
 
     return deletedRepository;
 };

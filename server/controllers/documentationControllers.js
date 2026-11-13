@@ -1,16 +1,16 @@
 
-const documentationService = require("../services/documentationservice");
+const documentationService = require("../services/documentationService");
 const repositoryService = require("../services/repositoryService");
 
 // 1. Create documentation
-const createDocumentation = (req, res) => {
+const createDocumentation = async (req, res) => {
     try {
-        const repository = repositoryService.getRepositoryById(
+        const repository = await repositoryService.getRepositoryById(
             req.params.id
         );
 
-        const document = documentationService.createDocumentation(
-            repository.id,
+        const document = await documentationService.createDocumentation(
+            repository._id,
             req.body
         );
 
@@ -29,14 +29,14 @@ const createDocumentation = (req, res) => {
 };
 
 // 2. Get all documentation
-const getDocumentation = (req, res) => {
+const getDocumentation = async (req, res) => {
     try {
-        const repository = repositoryService.getRepositoryById(
+        const repository = await repositoryService.getRepositoryById(
             req.params.id
         );
 
-        const documents = documentationService.getDocumentation(
-            repository.id
+        const documents = await documentationService.getDocumentation(
+            repository._id
         );
 
         res.status(200).json({
@@ -54,9 +54,9 @@ const getDocumentation = (req, res) => {
 };
 
 // 3. Get one document
-const getDocumentationById = (req, res) => {
+const getDocumentationById = async (req, res) => {
     try {
-        const document = documentationService.getDocumentationById(
+        const document = await documentationService.getDocumentationById(
             req.params.id,
             req.params.docId
         );
@@ -75,9 +75,9 @@ const getDocumentationById = (req, res) => {
 };
 
 // 4. Update documentation
-const updateDocumentation = (req, res) => {
+const updateDocumentation = async (req, res) => {
     try {
-        const document = documentationService.updateDocumentation(
+        const document = await documentationService.updateDocumentation(
             req.params.id,
             req.params.docId,
             req.body
@@ -98,9 +98,9 @@ const updateDocumentation = (req, res) => {
 };
 
 // 5. Delete documentation
-const deleteDocumentation = (req, res) => {
+const deleteDocumentation = async (req, res) => {
     try {
-        const document = documentationService.deleteDocumentation(
+        const document = await documentationService.deleteDocumentation(
             req.params.id,
             req.params.docId
         );

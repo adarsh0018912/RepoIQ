@@ -1,5 +1,5 @@
 
-const githubService = require("./githubservice");
+const githubService = require("./githubService");
 
 const MAX_FILES = 30;
 const MAX_FILE_SIZE = 100000;

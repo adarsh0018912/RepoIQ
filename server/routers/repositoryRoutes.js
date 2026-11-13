@@ -14,9 +14,9 @@ const {
       analyzeRepository
 } = require("../controllers/repositoryControllers");
 
-// ==========================================
-// MODULE 1: REPOSITORY MANAGEMENT
-// ==========================================
+
+//MODULE 1: REPOSITORY MANAGEMENT
+
 
 // GET all repositories
 router.get("/", getRepositories);
@@ -31,9 +31,9 @@ router.get("/:id", getRepositoryById);
 router.delete("/:id", deleteRepository);
 
 
-// ==========================================
-// MODULE 2: GITHUB INTEGRATION
-// ==========================================
+
+//  GITHUB INTEGRATION
+
 
 // GET repository branches
 router.get("/:id/branches", getRepositoryBranches);

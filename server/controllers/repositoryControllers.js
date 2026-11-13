@@ -1,7 +1,7 @@
 
 const repositoryService = require("../services/repositoryService");
-const githubService = require("../services/githubservice");
-const codeAnalysisService = require("../services/codeanalysisService");
+const githubService = require("../services/githubService");
+const codeAnalysisService = require("../services/codeAnalysisService");
 //  REPOSITORY MANAGEMENT
 
 // GET all repositories
